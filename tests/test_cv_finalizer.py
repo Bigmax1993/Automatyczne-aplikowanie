@@ -45,8 +45,10 @@ def test_ocr_pdf_success_concatenates_pages() -> None:
 def test_gpt_call_returns_message_content() -> None:
     mock_resp = MagicMock()
     mock_resp.choices = [MagicMock(message=MagicMock(content="  OK  "))]
+    api = MagicMock()
+    api.chat.completions.create.return_value = mock_resp
 
-    with patch.object(cv_finalizer.client.chat.completions, "create", return_value=mock_resp):
+    with patch.object(cv_finalizer, "_get_openai_client", return_value=api):
         assert cv_finalizer.gpt_call([{"role": "user", "content": "hi"}]) == "  OK  "
 
 
