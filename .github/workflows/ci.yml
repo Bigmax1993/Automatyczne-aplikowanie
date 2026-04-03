@@ -5,6 +5,7 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
+  workflow_dispatch: {}
 
 jobs:
   test:
@@ -53,6 +54,7 @@ jobs:
       RUN_SERP_INTEGRATION: ${{ vars.RUN_SERP_INTEGRATION }}
       RUN_OPENAI_INTEGRATION: ${{ vars.RUN_OPENAI_INTEGRATION }}
       RUN_DRIVE_INTEGRATION: ${{ vars.RUN_DRIVE_INTEGRATION }}
+      RUN_SMTP_INTEGRATION: ${{ vars.RUN_SMTP_INTEGRATION }}
       RUN_SLOW_INTEGRATION: ${{ vars.RUN_SLOW_INTEGRATION }}
     steps:
       - uses: actions/checkout@v4

@@ -1,5 +1,7 @@
 # Automatyczne aplikowanie
 
+[![CI](https://github.com/Bigmax1993/Automatyczne-aplikowanie/actions/workflows/ci.yml/badge.svg)](https://github.com/Bigmax1993/Automatyczne-aplikowanie/actions/workflows/ci.yml)
+
 Pipeline: wyszukiwanie ofert (SerpApi) → strony firm → scraping e-maili → generowanie treści (OpenAI) → wysyłka (SMTP) → raport Excel.
 
 Repozytorium GitHub: **automatyczne-aplikowanie** (katalog roboczy historycznie: `job-auto-apply`).
