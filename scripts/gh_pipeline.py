@@ -2,22 +2,22 @@
 Entry point for GitHub Actions (workflow_dispatch / schedule).
 
 Modes: SerpApi-only (raport Excel), pełny pipeline (main), wysyłka raportu e-mail.
+
+Lokalnie uruchamiaj z katalogu głównym repozytorium, z PYTHONPATH wskazującym na root, np.:
+
+    PYTHONPATH=. python scripts/gh_pipeline.py serpapi
 """
 
 from __future__ import annotations
 
 import argparse
-import os
-import sys
-
-_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if _REPO_ROOT not in sys.path:
-    sys.path.insert(0, _REPO_ROOT)
 
 import pandas as pd
 from loguru import logger
 
+from main import run_full_pipeline
 from reporter import save_full_report
+from scripts.send_report_email import send_latest_report
 from serp_client import run_jobs, run_websites
 
 
@@ -36,15 +36,11 @@ def _run_serpapi_and_save_report() -> None:
 
 def _run_full() -> None:
     logger.info("=== GH: pełny pipeline (main) ===")
-    from main import run_full_pipeline
-
     run_full_pipeline()
 
 
 def _run_email_report() -> None:
     logger.info("=== GH: wysyłka raportu Excel na e-mail ===")
-    from scripts.send_report_email import send_latest_report
-
     send_latest_report()
 
 

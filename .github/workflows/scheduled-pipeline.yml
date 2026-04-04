@@ -37,6 +37,8 @@ jobs:
       TZ: Europe/Warsaw
       PYTHONUNBUFFERED: "1"
       PYTHONUTF8: "1"
+      # Importy w scripts/gh_pipeline.py (main, reporter, …) — root repozytorium musi być na PYTHONPATH
+      PYTHONPATH: ${{ github.workspace }}
       PIPELINE_OUTPUT_DIR: ${{ github.workspace }}/artifacts/reports
 
       SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
