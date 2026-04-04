@@ -68,9 +68,9 @@ def test_generate_match_pdf_creates_file(tmp_path) -> None:
 
 
 def test_merge_pdfs_combines_page_counts(tmp_path) -> None:
-    from reportlab.pdfgen import canvas
-    from reportlab.lib.pagesizes import A4
     from pypdf import PdfReader
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
 
     a = tmp_path / "a.pdf"
     b = tmp_path / "b.pdf"
@@ -90,9 +90,9 @@ def test_merge_pdfs_combines_page_counts(tmp_path) -> None:
 def test_build_final_cv_end_to_end_with_stubbed_ocr_and_gpt(
     monkeypatch: pytest.MonkeyPatch, tmp_path
 ) -> None:
-    from reportlab.pdfgen import canvas
-    from reportlab.lib.pagesizes import A4
     from pypdf import PdfReader
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
 
     monkeypatch.chdir(tmp_path)
 

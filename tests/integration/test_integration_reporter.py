@@ -12,7 +12,9 @@ from reporter import save_full_report
 
 
 @pytest.mark.integration
-def test_save_full_report_roundtrip_all_sheets(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_save_full_report_roundtrip_all_sheets(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     xlsx = tmp_path / "sub" / "integration_report.xlsx"
     monkeypatch.setattr(reporter, "REPORT_XLSX", xlsx)
 

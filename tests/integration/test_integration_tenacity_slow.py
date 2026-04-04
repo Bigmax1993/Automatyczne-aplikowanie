@@ -7,7 +7,6 @@ import time
 import pytest
 
 from rate_limit import simple_retry
-
 from tests.integration.helpers import env_truthy
 
 

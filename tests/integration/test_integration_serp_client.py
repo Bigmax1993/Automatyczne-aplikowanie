@@ -8,7 +8,6 @@ import pandas as pd
 import pytest
 
 import serp_client
-
 from tests.integration.helpers import env_truthy
 
 

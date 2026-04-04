@@ -7,7 +7,6 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
 
-import webdriver_apply
 from webdriver_apply import extract_emails, fetch_html
 
 

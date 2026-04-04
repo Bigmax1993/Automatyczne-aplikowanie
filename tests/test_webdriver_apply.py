@@ -39,7 +39,9 @@ def test_extract_emails_empty_input() -> None:
     assert extract_emails("") == []
 
 
-def test_fetch_html_returns_empty_string_for_non_html_content(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_fetch_html_returns_empty_string_for_non_html_content(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     mock_resp = MagicMock()
     mock_resp.headers = {"Content-Type": "application/json"}
     mock_resp.raise_for_status = MagicMock()

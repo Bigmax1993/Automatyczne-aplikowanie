@@ -21,9 +21,9 @@ import cv_finalizer
 def test_build_final_cv_produces_merged_pdf_and_removes_temp_match(
     monkeypatch: pytest.MonkeyPatch, tmp_path
 ) -> None:
-    from reportlab.pdfgen import canvas
-    from reportlab.lib.pagesizes import A4
     from pypdf import PdfReader
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
 
     monkeypatch.chdir(tmp_path)
 

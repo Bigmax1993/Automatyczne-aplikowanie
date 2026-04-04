@@ -50,7 +50,7 @@ jobs:
       - name: Ruff
         run: |
           python -m pip install ruff
-          python -m ruff check main.py config.py pipeline_validate.py serp_client.py mailer.py webdriver_apply.py rate_limit.py reporter.py scheduler.py cv_engine.py Serp_limit.py cv_finalizer.py scripts
+          python -m ruff check main.py config.py pipeline_validate.py serp_client.py mailer.py webdriver_apply.py rate_limit.py reporter.py scheduler.py cv_engine.py Serp_limit.py cv_finalizer.py scripts tests
 
       - name: Pytest (bez integracji — bez sieci / wolnych)
         run: python -m pytest tests/ -m "not integration and not slow"

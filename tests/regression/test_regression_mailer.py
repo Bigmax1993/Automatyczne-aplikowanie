@@ -4,12 +4,12 @@ Regresja: mailer — brak wysyłki bez CV; pomijanie pustej treści; rozdzielani
 
 from __future__ import annotations
 
+import smtplib
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
-import smtplib
 
 import mailer
 from mailer import _send_email, run_mail_sending
