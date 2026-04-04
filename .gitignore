@@ -26,6 +26,10 @@ output/*.log
 output/*.xlsx
 artifacts/
 
+# Stan limitu SerpApi (generowany w runtime)
+data/serp_usage.json
+data/serp_usage.lock.json
+
 # OS
 .DS_Store
 Thumbs.db
