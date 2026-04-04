@@ -1,0 +1,3 @@
+# Workflow na runnerze Linux — CRLF potrafi psuć kontynuacje linii w generowanych skryptach.
+.github/workflows/** linguist-generated=false
+.github/workflows/*.yml text eol=lf

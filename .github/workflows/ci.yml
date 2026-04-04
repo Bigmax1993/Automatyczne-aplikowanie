@@ -39,12 +39,10 @@ jobs:
       - name: Pip check
         run: python -m pip check
 
-      # Jedna linia — unikamy backslash + pustych wierszy w YAML (bash: exit 127).
+      # Musi być jedna fizyczna linia poleceń — GA+YAML z wieloliniowym run potrafi wygenerować `\`
+      # i wtedy bash wykonuje `main.py` jako osobny program (exit 127).
       - name: Składnia (compileall)
-        run: >-
-          python -m compileall -q -f
-          main.py config.py pipeline_validate.py Serp_limit.py serp_client.py webdriver_apply.py
-          rate_limit.py reporter.py scheduler.py mailer.py cv_engine.py cv_finalizer.py scripts
+        run: python -m compileall -q -f main.py config.py pipeline_validate.py Serp_limit.py serp_client.py webdriver_apply.py rate_limit.py reporter.py scheduler.py mailer.py cv_engine.py cv_finalizer.py scripts
 
       - name: Kolekcja testów (importy przy zbieraniu)
         run: python -m pytest tests/ --collect-only -q
