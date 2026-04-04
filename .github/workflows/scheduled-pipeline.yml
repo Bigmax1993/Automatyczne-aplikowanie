@@ -1,0 +1,93 @@
+name: Scheduled Pipeline
+
+concurrency:
+  group: job-auto-apply-pipeline-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_mode:
+        description: "Który fragment uruchomić"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - serpapi
+          - full
+          - weekly_email_report
+  schedule:
+    # UTC — poniedziałek: zbieranie SerpApi (oferty + strony)
+    - cron: "0 16 * * 1"
+    # UTC — wtorek: pełny pipeline + opcjonalnie mail z raportem
+    - cron: "0 2 * * 2"
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      TZ: Europe/Warsaw
+      PYTHONUNBUFFERED: "1"
+      PYTHONUTF8: "1"
+      PIPELINE_OUTPUT_DIR: ${{ github.workspace }}/artifacts/reports
+
+      SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      SMTP_USER: ${{ secrets.SMTP_USER }}
+      SMTP_PASS: ${{ secrets.SMTP_PASS }}
+      CV_DRIVE_ID: ${{ secrets.CV_DRIVE_ID }}
+
+      PIPELINE_DRY_RUN: ${{ vars.PIPELINE_DRY_RUN }}
+      REPORT_EMAIL_TO: ${{ vars.REPORT_EMAIL_TO }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Prepare directories
+        run: |
+          mkdir -p artifacts/reports artifacts/logs artifacts/state data/checkpoints
+
+      - name: Run SerpApi + zapis raportu (poniedziałek / ręcznie: tylko serpapi)
+        if: |
+          (github.event_name == 'workflow_dispatch' && inputs.run_mode == 'serpapi') ||
+          (github.event_name == 'schedule' && github.event.schedule == '0 16 * * 1')
+        run: python scripts/gh_pipeline.py serpapi
+
+      - name: Pełny pipeline (wtorek / ręcznie: full lub all)
+        if: |
+          (github.event_name == 'workflow_dispatch' && (inputs.run_mode == 'all' || inputs.run_mode == 'full')) ||
+          (github.event_name == 'schedule' && github.event.schedule == '0 2 * * 2')
+        run: python scripts/gh_pipeline.py full
+
+      - name: Wyślij raport e-mailem (wtorek / ręcznie: all lub weekly_email_report)
+        if: |
+          (github.event_name == 'workflow_dispatch' && (inputs.run_mode == 'all' || inputs.run_mode == 'weekly_email_report')) ||
+          (github.event_name == 'schedule' && github.event.schedule == '0 2 * * 2')
+        run: python scripts/gh_pipeline.py weekly_email_report
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-artifacts
+          path: |
+            artifacts/reports/**
+            artifacts/logs/**
+            artifacts/state/**
+            data/**

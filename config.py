@@ -33,11 +33,18 @@ BASE_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
 DATA_DIR = BASE_DIR / "data"
-OUTPUT_DIR = BASE_DIR / "output"
+
+_out_env = (os.getenv("PIPELINE_OUTPUT_DIR") or "").strip()
+if _out_env:
+    _p = Path(_out_env)
+    OUTPUT_DIR = _p.resolve() if _p.is_absolute() else (BASE_DIR / _p).resolve()
+else:
+    OUTPUT_DIR = (BASE_DIR / "output").resolve()
+
 CHECKPOINT_DIR = DATA_DIR / "checkpoints"
 
 DATA_DIR.mkdir(exist_ok=True)
-OUTPUT_DIR.mkdir(exist_ok=True)
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 CHECKPOINT_DIR.mkdir(exist_ok=True)
 
 REPORT_XLSX = OUTPUT_DIR / "report.xlsx"

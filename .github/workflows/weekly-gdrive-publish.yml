@@ -1,0 +1,100 @@
+name: Weekly Google Drive Publish
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Czwartek ~ 17:00 Europe/Warsaw (zima) — 16:00 UTC
+    - cron: "0 16 * * 4"
+  workflow_run:
+    workflows: ["Scheduled Pipeline"]
+    types:
+      - completed
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    permissions:
+      contents: read
+      actions: read
+    env:
+      PIPELINE_OUTPUT_DIR: ${{ github.workspace }}/artifacts/reports
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Pobierz artefakty z ostatniego „Scheduled Pipeline”
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: pipeline-artifacts
+          path: downloaded
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Prepare weekly bundle
+        run: |
+          mkdir -p dist/src
+          if [ -d downloaded/artifacts/reports ]; then
+            python scripts/prepare_weekly_bundle.py \
+              --source-dir downloaded/artifacts/reports \
+              --out-dir dist/weekly_bundle
+          else
+            python scripts/prepare_weekly_bundle.py \
+              --source-dir artifacts/reports \
+              --out-dir dist/weekly_bundle
+          fi
+          cd dist
+          zip -r weekly_bundle.zip weekly_bundle
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly_bundle
+          path: dist/weekly_bundle.zip
+
+      - name: Install rclone
+        run: curl https://rclone.org/install.sh | sudo bash
+
+      - name: Configure Google Drive (service account)
+        env:
+          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+        run: |
+          if [ -z "$GDRIVE_SERVICE_ACCOUNT_JSON" ] || [ -z "$GDRIVE_FOLDER_ID" ]; then
+            echo "SKIP_GDRIVE_UPLOAD=true" >> "$GITHUB_ENV"
+            echo "Pomijam Drive: brak GDRIVE_SERVICE_ACCOUNT_JSON lub GDRIVE_FOLDER_ID."
+            exit 0
+          fi
+          echo "SKIP_GDRIVE_UPLOAD=false" >> "$GITHUB_ENV"
+          SA_PATH="$RUNNER_TEMP/gdrive-sa.json"
+          echo "$GDRIVE_SERVICE_ACCOUNT_JSON" > "$SA_PATH"
+          cat > "$RUNNER_TEMP/rclone.conf" <<EOF
+          [gdrive]
+          type = drive
+          scope = drive
+          service_account_file = $SA_PATH
+          root_folder_id = $GDRIVE_FOLDER_ID
+          EOF
+          echo "RCLONE_CONFIG=$RUNNER_TEMP/rclone.conf" >> "$GITHUB_ENV"
+
+      - name: Publish zip to Google Drive
+        if: env.SKIP_GDRIVE_UPLOAD != 'true'
+        run: |
+          ts=$(date -u +%Y%m%d_%H%M%S)
+          remote_path="weekly_reports/weekly_bundle_${ts}.zip"
+          rclone copyto dist/weekly_bundle.zip "gdrive:${remote_path}" --drive-shared-with-me=false
+          echo "Uploaded: ${remote_path}"
+
+      - name: Skip Drive (brak sekretów)
+        if: env.SKIP_GDRIVE_UPLOAD == 'true'
+        run: echo "Ustaw GDRIVE_SERVICE_ACCOUNT_JSON i GDRIVE_FOLDER_ID, aby włączyć upload."

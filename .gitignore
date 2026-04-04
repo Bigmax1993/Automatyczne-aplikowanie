@@ -1,18 +1,31 @@
+# Sekrety i środowisko
 .env
+.env.local
 .venv/
 venv/
+
+# Python
 __pycache__/
-*.pyc
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.ipynb_checkpoints/
+*.py[cod]
+*$py.class
 *.egg-info/
+.eggs/
 dist/
 build/
-data/checkpoints/*.parquet
-data/serp_usage.json
-data/serp_usage.lock.json
-data/cv.pdf
-output/*
-!output/.gitkeep
+
+# Narzędzia / IDE
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+.vscode/
+.idea/
+
+# Artefakty lokalne (CI używa artifacts/reports)
+output/*.log
+output/*.xlsx
+artifacts/
+
+# OS
+.DS_Store
+Thumbs.db

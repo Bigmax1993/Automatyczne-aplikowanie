@@ -16,24 +16,7 @@ from reportlab.pdfgen import canvas
 
 from config import OPENAI_API_KEY
 
-_openai_client: OpenAI | None = None
-
-
-def _get_openai_client() -> OpenAI:
-    """Lazy init — import modułu nie wymaga OPENAI_API_KEY (np. CI, same testy OCR/PDF)."""
-    global _openai_client
-    if _openai_client is None:
-        key = OPENAI_API_KEY
-        if not key or not str(key).strip():
-            raise ValueError(
-                "OPENAI_API_KEY jest wymagany do wywołań GPT w cv_finalizer — ustaw w .env."
-            )
-        if not str(key).isascii():
-            raise ValueError(
-                "OPENAI_API_KEY musi być ASCII-only (nagłówek HTTP), patrz mailer / .env.example."
-            )
-        _openai_client = OpenAI(api_key=key)
-    return _openai_client
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 
 # ---------------------------------------------------------
@@ -73,7 +56,7 @@ def gpt_call(messages, max_attempts=3, model="gpt-4o-mini", max_tokens=350, temp
         try:
             logger.info(f"GPT: Próba {attempt}/{max_attempts}")
 
-            response = _get_openai_client().chat.completions.create(
+            response = client.chat.completions.create(
                 model=model,
                 messages=messages,
                 max_tokens=max_tokens,

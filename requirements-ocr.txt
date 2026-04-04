@@ -1,4 +1,0 @@
-# Opcjonalne zależności dla cv_finalizer.py (OCR PDF).
-# Wymaga też Poppler (PATH) oraz zainstalowanego Tesseract OCR w systemie.
-pdf2image>=1.16
-pytesseract>=0.3
