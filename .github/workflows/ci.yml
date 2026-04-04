@@ -1,95 +1,96 @@
-name: CI
-
-on:
-  push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: requirements.txt
-
-      - name: Install system deps (OCR / PDF w testach)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends tesseract-ocr poppler-utils
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-
-      - name: Pip check
-        run: pip check
-
-      - name: Składnia (compileall)
-        run: |
-          python -m compileall -q -f \
-            main.py config.py pipeline_validate.py Serp_limit.py serp_client.py webdriver_apply.py \
-            rate_limit.py reporter.py scheduler.py mailer.py cv_engine.py cv_finalizer.py \
-            scripts/
-
-      - name: Kolekcja testów (importy przy zbieraniu)
-        run: pytest tests/ --collect-only -q
-
-      - name: Ruff
-        run: |
-          python -m pip install ruff
-          ruff check main.py config.py pipeline_validate.py serp_client.py mailer.py \
-            webdriver_apply.py rate_limit.py reporter.py scheduler.py cv_engine.py \
-            Serp_limit.py cv_finalizer.py scripts/
-
-      - name: Pytest (bez integracji — bez sieci / wolnych)
-        run: pytest tests/ -m "not integration and not slow"
-
-  integration:
-    needs: test
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    env:
-      SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      SMTP_USER: ${{ secrets.SMTP_USER }}
-      SMTP_PASS: ${{ secrets.SMTP_PASS }}
-      CV_DRIVE_ID: ${{ secrets.CV_DRIVE_ID }}
-      INTEGRATION_SMTP_TO: ${{ secrets.INTEGRATION_SMTP_TO }}
-      RUN_SERP_INTEGRATION: ${{ vars.RUN_SERP_INTEGRATION }}
-      RUN_OPENAI_INTEGRATION: ${{ vars.RUN_OPENAI_INTEGRATION }}
-      RUN_DRIVE_INTEGRATION: ${{ vars.RUN_DRIVE_INTEGRATION }}
-      RUN_SMTP_INTEGRATION: ${{ vars.RUN_SMTP_INTEGRATION }}
-      RUN_SLOW_INTEGRATION: ${{ vars.RUN_SLOW_INTEGRATION }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: requirements.txt
-
-      - name: Install system deps (OCR / PDF)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends tesseract-ocr poppler-utils
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-
-      - name: Pytest (integracja)
-        run: pytest tests/ -m integration --tb=short -v
-
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Nowsze wersje akcji (Node 20 na runnerach jest wycofywane — patrz changelog GitHub Actions).
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install system deps (OCR / PDF w testach)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends tesseract-ocr poppler-utils
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Pip check
+        run: python -m pip check
+
+      # Jedna linia — unikamy backslash + pustych wierszy w YAML (bash: exit 127).
+      - name: Składnia (compileall)
+        run: >-
+          python -m compileall -q -f
+          main.py config.py pipeline_validate.py Serp_limit.py serp_client.py webdriver_apply.py
+          rate_limit.py reporter.py scheduler.py mailer.py cv_engine.py cv_finalizer.py scripts
+
+      - name: Kolekcja testów (importy przy zbieraniu)
+        run: python -m pytest tests/ --collect-only -q
+
+      - name: Ruff
+        run: |
+          python -m pip install ruff
+          python -m ruff check main.py config.py pipeline_validate.py serp_client.py mailer.py webdriver_apply.py rate_limit.py reporter.py scheduler.py cv_engine.py Serp_limit.py cv_finalizer.py scripts
+
+      - name: Pytest (bez integracji — bez sieci / wolnych)
+        run: python -m pytest tests/ -m "not integration and not slow"
+
+  integration:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      SMTP_USER: ${{ secrets.SMTP_USER }}
+      SMTP_PASS: ${{ secrets.SMTP_PASS }}
+      CV_DRIVE_ID: ${{ secrets.CV_DRIVE_ID }}
+      INTEGRATION_SMTP_TO: ${{ secrets.INTEGRATION_SMTP_TO }}
+      RUN_SERP_INTEGRATION: ${{ vars.RUN_SERP_INTEGRATION }}
+      RUN_OPENAI_INTEGRATION: ${{ vars.RUN_OPENAI_INTEGRATION }}
+      RUN_DRIVE_INTEGRATION: ${{ vars.RUN_DRIVE_INTEGRATION }}
+      RUN_SMTP_INTEGRATION: ${{ vars.RUN_SMTP_INTEGRATION }}
+      RUN_SLOW_INTEGRATION: ${{ vars.RUN_SLOW_INTEGRATION }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install system deps (OCR / PDF)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends tesseract-ocr poppler-utils
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Pytest (integracja)
+        run: python -m pytest tests/ -m integration --tb=short -v

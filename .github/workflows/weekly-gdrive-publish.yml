@@ -1,5 +1,8 @@
 name: Weekly Google Drive Publish
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   workflow_dispatch:
   schedule:
@@ -21,12 +24,14 @@ jobs:
       PIPELINE_OUTPUT_DIR: ${{ github.workspace }}/artifacts/reports
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
 
       - name: Install dependencies
         run: |
@@ -45,13 +50,9 @@ jobs:
         run: |
           mkdir -p dist/src
           if [ -d downloaded/artifacts/reports ]; then
-            python scripts/prepare_weekly_bundle.py \
-              --source-dir downloaded/artifacts/reports \
-              --out-dir dist/weekly_bundle
+            python scripts/prepare_weekly_bundle.py --source-dir downloaded/artifacts/reports --out-dir dist/weekly_bundle
           else
-            python scripts/prepare_weekly_bundle.py \
-              --source-dir artifacts/reports \
-              --out-dir dist/weekly_bundle
+            python scripts/prepare_weekly_bundle.py --source-dir artifacts/reports --out-dir dist/weekly_bundle
           fi
           cd dist
           zip -r weekly_bundle.zip weekly_bundle

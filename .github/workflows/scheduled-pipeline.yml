@@ -7,6 +7,9 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   workflow_dispatch:
     inputs:
@@ -47,12 +50,14 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
 
       - name: Install dependencies
         run: |
@@ -63,19 +68,19 @@ jobs:
         run: |
           mkdir -p artifacts/reports artifacts/logs artifacts/state data/checkpoints
 
-      - name: Run SerpApi + zapis raportu (poniedziałek / ręcznie: tylko serpapi)
+      - name: "Run SerpApi + zapis raportu (poniedziałek / ręcznie: tylko serpapi)"
         if: |
           (github.event_name == 'workflow_dispatch' && inputs.run_mode == 'serpapi') ||
           (github.event_name == 'schedule' && github.event.schedule == '0 16 * * 1')
         run: python scripts/gh_pipeline.py serpapi
 
-      - name: Pełny pipeline (wtorek / ręcznie: full lub all)
+      - name: "Pełny pipeline (wtorek / ręcznie: full lub all)"
         if: |
           (github.event_name == 'workflow_dispatch' && (inputs.run_mode == 'all' || inputs.run_mode == 'full')) ||
           (github.event_name == 'schedule' && github.event.schedule == '0 2 * * 2')
         run: python scripts/gh_pipeline.py full
 
-      - name: Wyślij raport e-mailem (wtorek / ręcznie: all lub weekly_email_report)
+      - name: "Wyślij raport e-mailem (wtorek / ręcznie: all lub weekly_email_report)"
         if: |
           (github.event_name == 'workflow_dispatch' && (inputs.run_mode == 'all' || inputs.run_mode == 'weekly_email_report')) ||
           (github.event_name == 'schedule' && github.event.schedule == '0 2 * * 2')

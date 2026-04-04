@@ -9,16 +9,7 @@ description = "Automatyczne aplikowanie — pipeline ofert (SerpApi), scrapingu 
 readme = "README.md"
 requires-python = ">=3.10"
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["."]
-addopts = "-q"
-markers = [
-    "integration: testy integracyjne",
-    "slow: bardzo wolne",
-    "regression: testy regresji",
-    "e2e: testy end-to-end",
-]
+# Konfiguracja pytest wyłącznie w pytest.ini (unikamy ostrzeżenia o dwóch źródłach).
 
 [tool.ruff]
 target-version = "py310"
