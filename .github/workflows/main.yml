@@ -1,5 +1,9 @@
 name: Automatyczne Aplikowanie - Pipeline
 
+permissions:
+  contents: read
+  actions: write
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -7,7 +11,7 @@ on:
   schedule:
     # Uruchamia się codziennie o 7:00 rano (UTC = 9:00 czasu polskiego)
     - cron: '0 7 * * 1-5'   # Poniedziałek - Piątek
- 
+
   workflow_dispatch:          # Możliwość ręcznego uruchomienia z GitHub UI
     inputs:
       dry_run:
@@ -30,11 +34,11 @@ jobs:
     steps:
       # 1. Pobierz kod
       - name: Checkout repozytorium
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       # 2. Ustaw Python
       - name: Ustaw Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: pip
@@ -63,19 +67,19 @@ jobs:
       # 5. Zapisz raport Excel jako artefakt (nawet jeśli pipeline się nie powiódł)
       - name: Zapisz raport Excel
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: raport-aplikowania-${{ github.run_id }}
           path: output/
           retention-days: 30
           if-no-files-found: ignore
- 
+
       # 6. Zapisz logi jako artefakt
       - name: Zapisz logi
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: logi-${{ github.run_id }}
-          path: '*.log'
+          path: output/*.log
           retention-days: 14
           if-no-files-found: ignore

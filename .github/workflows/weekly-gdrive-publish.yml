@@ -19,15 +19,15 @@ jobs:
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: read
-      actions: read
+      actions: write
     env:
       PIPELINE_OUTPUT_DIR: ${{ github.workspace }}/artifacts/reports
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -40,7 +40,7 @@ jobs:
 
       - name: Pobierz artefakty z ostatniego „Scheduled Pipeline”
         if: github.event_name == 'workflow_run'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: pipeline-artifacts
           path: downloaded
@@ -58,7 +58,7 @@ jobs:
           zip -r weekly_bundle.zip weekly_bundle
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: weekly_bundle
           path: dist/weekly_bundle.zip
